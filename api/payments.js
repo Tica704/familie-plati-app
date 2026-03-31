@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbya-VXrsChi-lgmMLpAb7MQsMhw0OaDNLV2bRkide7EZZbZVW2mx7sxi3vuODi7U-3x/exec";
+  https://script.google.com/macros/s/AKfycbxaBJxo38t48etibT60mrP-f_ao7ElVowGEMEJn0Ft2ZBRst1-RpmBfFkf5A8zw33s/exec
 
   try {
     if (req.method === "GET") {

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facturi Familie</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1738;
+      color: white;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: #1f274f;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .paid { background: #163c2e; }
+    .soon { background: #4a3b16; }
+    .overdue { background: #4a1f28; }
+    .small { opacity: 0.85; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Facturi Familie</h1>
+  <div id="content">Se încarcă...</div>
+
+  <script>
+    const API_URL = "https://familie-plati-app-ce8l.vercel.app/api/payments";
+
+    function parseDate(dateStr) {
+      if (!dateStr) return null;
+      return new Date(dateStr);
+    }
+
+    function daysUntil(dateStr) {
+      const d = parseDate(dateStr);
+      if (!d) return null;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      d.setHours(0,0,0,0);
+      return Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+    }
+
+    function formatDate(dateStr) {
+      const d = parseDate(dateStr);
+      if (!d || isNaN(d)) return dateStr || "-";
+      return d.toLocaleDateString("ro-RO");
+    }
+
+    function renderBills(data) {
+      const content = document.getElementById("content");
+
+      if (!Array.isArray(data) || data.length === 0) {
+        content.innerHTML = "Nu există facturi.";
+        return;
+      }
+
+      let html = "";
+
+      data.forEach(bill => {
+        const diff = daysUntil(bill.DataScadenta);
+        let cls = "";
+        if (bill.Platita === true) cls = "paid";
+        else if (diff !== null && diff < 0) cls = "overdue";
+        else if (diff !== null && diff <= 5) cls = "soon";
+
+        html += `
+          <div class="card ${cls}">
+            <div><strong>${bill.TipPlata || "-"}</strong></div>
+            <div class="small">Persoană: ${bill.Persoana || "-"}</div>
+            <div class="small">Furnizor: ${bill.Furnizor || "-"}</div>
+            <div class="small">Scadență: ${formatDate(bill.DataScadenta)}</div>
+            <div class="small">Sumă: ${bill.Suma || 0}</div>
+            <div class="small">Metodă: ${bill.Metoda || "-"}</div>
+            <div class="small">Plătită: ${bill.Platita ? "Da" : "Nu"}</div>
+          </div>
+        `;
+      });
+
+      content.innerHTML = html;
+    }
+
+    fetch(API_URL)
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(data => renderBills(data))
+      .catch(err => {
+        document.getElementById("content").textContent =
+          "Eroare la încărcare: " + err.message;
+      });
+  </script>
+</body>
+</html>

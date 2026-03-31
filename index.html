@@ -120,16 +120,23 @@
       padding: 10px 12px;
       font-weight: bold;
       flex: 1;
+      transition: 0.2s ease;
     }
 
+    /* Neplatit -> ROZ */
     .btn-paid {
+      background: #ffb3b3;
+      color: #4c0912;
+    }
+
+    /* Platit -> VERDE */
+    .btn-unpaid {
       background: #29d17d;
       color: #052312;
     }
 
-    .btn-unpaid {
-      background: #ffb3b3;
-      color: #4c0912;
+    .action-btn:active {
+      transform: scale(0.98);
     }
 
     .user-box {
@@ -146,6 +153,20 @@
       border: none;
       margin-top: 8px;
       font-size: 14px;
+    }
+
+    .loading,
+    .error-box,
+    .empty-box {
+      background: rgba(255,255,255,0.08);
+      padding: 14px;
+      border-radius: 14px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .error-box {
+      color: #ffd4d4;
     }
   </style>
 </head>
@@ -190,7 +211,7 @@
     <button class="filter-btn" onclick="setFilter('unpaid', event)">Neplătite</button>
   </div>
 
-  <div id="content">Se încarcă...</div>
+  <div id="content" class="loading">Se încarcă...</div>
 
 </div>
 
@@ -203,76 +224,103 @@ let currentFilter = "all";
 
 function icon(tip){
   tip = (tip || "").toLowerCase();
-  if(tip.includes("gaz")) return "🔥";
-  if(tip.includes("energie")) return "💡";
-  if(tip.includes("banca")) return "🏦";
-  if(tip.includes("chirie")) return "🏠";
-  if(tip.includes("internet")) return "🌐";
-  if(tip.includes("telefon")) return "📱";
-  if(tip.includes("paypal")) return "💳";
+
+  if (tip.includes("gaz")) return "🔥";
+  if (tip.includes("energie")) return "💡";
+  if (tip.includes("banca")) return "🏦";
+  if (tip.includes("chirie")) return "🏠";
+  if (tip.includes("internet")) return "🌐";
+  if (tip.includes("telefon")) return "📱";
+  if (tip.includes("paypal")) return "💳";
+
   return "📄";
 }
 
 function days(d){
-  if(!d) return null;
+  if (!d) return null;
+
   const date = new Date(d);
+  if (isNaN(date)) return null;
+
   const today = new Date();
   today.setHours(0,0,0,0);
   date.setHours(0,0,0,0);
+
   return Math.ceil((date - today)/(1000*60*60*24));
 }
 
 function statusClass(b){
-  if(b.Platita) return "paid";
-  if(days(b.DataScadenta) < 0) return "overdue";
-  if(days(b.DataScadenta) <= 5) return "soon";
+  const diff = days(b.DataScadenta);
+
+  if (b.Platita) return "paid";
+  if (diff !== null && diff < 0) return "overdue";
+  if (diff !== null && diff <= 5) return "soon";
+
   return "";
 }
 
 function statusText(b){
-  if(b.Platita) return "✅ Plătită";
-  if(days(b.DataScadenta) < 0) return "🔴 Restantă";
-  if(days(b.DataScadenta) <= 5) return "🟡 Scadență curând";
+  const diff = days(b.DataScadenta);
+
+  if (b.Platita) return "✅ Plătită";
+  if (diff !== null && diff < 0) return "🔴 Restantă";
+  if (diff !== null && diff <= 5) return "🟡 Scadență curând";
+
   return "🕒 În așteptare";
 }
 
 function formatDate(value){
-  if(!value) return "-";
+  if (!value) return "-";
+
   const d = new Date(value);
   if (isNaN(d)) return value;
+
   return d.toLocaleDateString("ro-RO");
 }
 
 function render(){
   let bills = [...allBills];
 
-  if(currentFilter === "Petrica")
+  if (currentFilter === "Petrica") {
     bills = bills.filter(b => b.Persoana === "Petrica");
+  }
 
-  if(currentFilter === "Anca")
+  if (currentFilter === "Anca") {
     bills = bills.filter(b => b.Persoana === "Anca");
+  }
 
-  if(currentFilter === "unpaid")
+  if (currentFilter === "unpaid") {
     bills = bills.filter(b => !b.Platita);
+  }
 
   const paid = allBills.filter(b => b.Platita);
   const unpaid = allBills.filter(b => !b.Platita);
 
   document.getElementById("totalPaid").textContent =
-    paid.reduce((s,b)=>s + Number(b.Suma || 0), 0);
+    paid.reduce((s, b) => s + Number(b.Suma || 0), 0);
 
   document.getElementById("totalUnpaid").textContent =
-    unpaid.reduce((s,b)=>s + Number(b.Suma || 0), 0);
+    unpaid.reduce((s, b) => s + Number(b.Suma || 0), 0);
 
   document.getElementById("paidCount").textContent = paid.length;
+
   document.getElementById("overdueCount").textContent =
-    unpaid.filter(b => days(b.DataScadenta) < 0).length;
+    unpaid.filter(b => {
+      const d = days(b.DataScadenta);
+      return d !== null && d < 0;
+    }).length;
 
   document.getElementById("soonCount").textContent =
     unpaid.filter(b => {
       const d = days(b.DataScadenta);
-      return d >= 0 && d <= 5;
+      return d !== null && d >= 0 && d <= 5;
     }).length;
+
+  if (!bills.length) {
+    document.getElementById("content").innerHTML =
+      `<div class="empty-box">Nu există facturi pentru filtrul selectat.</div>`;
+    return;
+  }
 
   let html = "";
 
@@ -292,7 +340,7 @@ function render(){
         <div class="action-row">
           ${
             b.Platita
-              ? `<button class="action-btn btn-unpaid" onclick="togglePaid('${b.ID}', false)">Anulează plata</button>`
+              ? `<button class="action-btn btn-unpaid" onclick="togglePaid('${b.ID}', false)">Plată efectuată</button>`
               : `<button class="action-btn btn-paid" onclick="togglePaid('${b.ID}', true)">Marchează plătit</button>`
           }
         </div>
@@ -300,20 +348,41 @@ function render(){
     `;
   });
 
-  document.getElementById("content").innerHTML = html || "Nu există facturi.";
+  document.getElementById("content").innerHTML = html;
 }
 
 function setFilter(f, e){
   currentFilter = f;
-  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-  e.target.classList.add("active");
+
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  if (e && e.target) {
+    e.target.classList.add("active");
+  }
+
   render();
 }
 
 async function loadBills(){
-  const res = await fetch(API_URL);
-  allBills = await res.json();
-  render();
+  try {
+    document.getElementById("content").innerHTML =
+      `<div class="loading">Se încarcă...</div>`;
+
+    const res = await fetch(API_URL, { cache: "no-store" });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error("HTTP " + res.status + " - " + text);
+    }
+
+    allBills = await res.json();
+    render();
+  } catch (err) {
+    document.getElementById("content").innerHTML =
+      `<div class="error-box">Eroare la încărcare: ${err.message}</div>`;
+  }
 }
 
 async function togglePaid(id, newValue){

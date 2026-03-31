@@ -1,86 +1,303 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Facturi Familie</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #0f1738;
+      background: linear-gradient(180deg, #0a1235 0%, #111d52 100%);
       color: white;
-      padding: 20px;
+      min-height: 100vh;
     }
-    h1 {
+
+    .app {
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 18px 14px 40px;
+    }
+
+    .header {
       text-align: center;
-      margin-bottom: 20px;
+      padding: 12px 0 18px;
     }
-    .card {
-      background: #1f274f;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
+
+    .title {
+      font-size: 34px;
+      font-weight: 700;
+      margin: 0;
     }
-    .paid { background: #163c2e; }
-    .soon { background: #4a3b16; }
-    .overdue { background: #4a1f28; }
-    .small { opacity: 0.85; font-size: 14px; }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 18px 0 18px;
+    }
+
+    .summary-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px 10px;
+      text-align: center;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    }
+
+    .summary-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      margin: 0 auto 8px;
+    }
+
+    .green { background: #29d17d; }
+    .yellow { background: #f4c542; }
+    .red { background: #ff6b6b; }
+
+    .summary-number {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .summary-label {
+      margin-top: 4px;
+      font-size: 12px;
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 20px 4px 12px;
+      opacity: 0.92;
+    }
+
+    .bill-card {
+      border-radius: 22px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .bill-card.paid {
+      background: linear-gradient(180deg, #0f5740 0%, #0b4432 100%);
+    }
+
+    .bill-card.soon {
+      background: linear-gradient(180deg, #7c5c11 0%, #604709 100%);
+    }
+
+    .bill-card.overdue {
+      background: linear-gradient(180deg, #7b2430 0%, #611822 100%);
+    }
+
+    .bill-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .bill-name {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .bill-amount {
+      font-size: 26px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .bill-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+      font-size: 14px;
+      opacity: 0.95;
+    }
+
+    .bill-item span {
+      display: block;
+      font-size: 12px;
+      opacity: 0.72;
+      margin-bottom: 2px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.14);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 28px 16px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      margin-top: 16px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px 12px;
+      opacity: 0.9;
+    }
+
+    .footer-space {
+      height: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>Facturi Familie</h1>
-  <div id="content">Se încarcă...</div>
+  <div class="app">
+    <div class="header">
+      <h1 class="title">Facturi Familie</h1>
+      <div class="subtitle">Petrica & Anca · monitorizare plăți</div>
+    </div>
+
+    <div class="summary">
+      <div class="summary-card">
+        <div class="summary-dot green"></div>
+        <div class="summary-number" id="paidCount">0</div>
+        <div class="summary-label">Plătite</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-dot yellow"></div>
+        <div class="summary-number" id="soonCount">0</div>
+        <div class="summary-label">Curând</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-dot red"></div>
+        <div class="summary-number" id="overdueCount">0</div>
+        <div class="summary-label">Restante</div>
+      </div>
+    </div>
+
+    <div class="section-title">Toate facturile</div>
+    <div id="content" class="loading">Se încarcă...</div>
+
+    <div class="footer-space"></div>
+  </div>
 
   <script>
     const API_URL = "https://familie-plati-app-ce8l.vercel.app/api/payments";
 
     function parseDate(dateStr) {
       if (!dateStr) return null;
-      return new Date(dateStr);
+      const d = new Date(dateStr);
+      return isNaN(d) ? null : d;
+    }
+
+    function formatDate(dateStr) {
+      const d = parseDate(dateStr);
+      if (!d) return "-";
+      return d.toLocaleDateString("ro-RO");
     }
 
     function daysUntil(dateStr) {
       const d = parseDate(dateStr);
       if (!d) return null;
+
       const today = new Date();
-      today.setHours(0,0,0,0);
-      d.setHours(0,0,0,0);
+      today.setHours(0, 0, 0, 0);
+      d.setHours(0, 0, 0, 0);
+
       return Math.ceil((d - today) / (1000 * 60 * 60 * 24));
     }
 
-    function formatDate(dateStr) {
-      const d = parseDate(dateStr);
-      if (!d || isNaN(d)) return dateStr || "-";
-      return d.toLocaleDateString("ro-RO");
+    function statusInfo(bill) {
+      const diff = daysUntil(bill.DataScadenta);
+
+      if (bill.Platita === true) {
+        return { cls: "paid", label: "Plătită" };
+      }
+
+      if (diff !== null && diff < 0) {
+        return { cls: "overdue", label: "Restantă" };
+      }
+
+      if (diff !== null && diff <= 5) {
+        return { cls: "soon", label: "Scadență curând" };
+      }
+
+      return { cls: "", label: "În așteptare" };
     }
 
-    function renderBills(data) {
+    function renderSummary(bills) {
+      const paid = bills.filter(b => b.Platita === true).length;
+      const overdue = bills.filter(b => !b.Platita && daysUntil(b.DataScadenta) < 0).length;
+      const soon = bills.filter(b => !b.Platita && daysUntil(b.DataScadenta) >= 0 && daysUntil(b.DataScadenta) <= 5).length;
+
+      document.getElementById("paidCount").textContent = paid;
+      document.getElementById("soonCount").textContent = soon;
+      document.getElementById("overdueCount").textContent = overdue;
+    }
+
+    function renderBills(bills) {
       const content = document.getElementById("content");
 
-      if (!Array.isArray(data) || data.length === 0) {
-        content.innerHTML = "Nu există facturi.";
+      if (!Array.isArray(bills) || bills.length === 0) {
+        content.innerHTML = '<div class="empty">Nu există facturi.</div>';
         return;
       }
 
+      renderSummary(bills);
+
       let html = "";
 
-      data.forEach(bill => {
-        const diff = daysUntil(bill.DataScadenta);
-        let cls = "";
-        if (bill.Platita === true) cls = "paid";
-        else if (diff !== null && diff < 0) cls = "overdue";
-        else if (diff !== null && diff <= 5) cls = "soon";
+      bills.forEach(bill => {
+        const status = statusInfo(bill);
 
         html += `
-          <div class="card ${cls}">
-            <div><strong>${bill.TipPlata || "-"}</strong></div>
-            <div class="small">Persoană: ${bill.Persoana || "-"}</div>
-            <div class="small">Furnizor: ${bill.Furnizor || "-"}</div>
-            <div class="small">Scadență: ${formatDate(bill.DataScadenta)}</div>
-            <div class="small">Sumă: ${bill.Suma || 0}</div>
-            <div class="small">Metodă: ${bill.Metoda || "-"}</div>
-            <div class="small">Plătită: ${bill.Platita ? "Da" : "Nu"}</div>
+          <div class="bill-card ${status.cls}">
+            <div class="bill-top">
+              <div class="bill-name">${bill.TipPlata || "-"}</div>
+              <div class="bill-amount">${bill.Suma || 0}</div>
+            </div>
+
+            <div class="bill-grid">
+              <div class="bill-item">
+                <span>Persoană</span>
+                ${bill.Persoana || "-"}
+              </div>
+              <div class="bill-item">
+                <span>Furnizor</span>
+                ${bill.Furnizor || "-"}
+              </div>
+              <div class="bill-item">
+                <span>Scadență</span>
+                ${formatDate(bill.DataScadenta)}
+              </div>
+              <div class="bill-item">
+                <span>Metodă</span>
+                ${bill.Metoda || "-"}
+              </div>
+            </div>
+
+            <div class="status-pill">${status.label}</div>
           </div>
         `;
       });
@@ -95,8 +312,8 @@
       })
       .then(data => renderBills(data))
       .catch(err => {
-        document.getElementById("content").textContent =
-          "Eroare la încărcare: " + err.message;
+        document.getElementById("content").innerHTML =
+          `<div class="empty">Eroare la încărcare: ${err.message}</div>`;
       });
   </script>
 </body>

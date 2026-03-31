@@ -1,193 +1,551 @@
-<!-- DOAR ÎNLOCUIEȘTI TOT CU ASTA -->
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Facturi Familie</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Facturi Familie</title>
+  <style>
+    * { box-sizing: border-box; }
 
-<style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#0a1235;
-  color:white;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #0a1235 0%, #111d52 100%);
+      color: white;
+      min-height: 100vh;
+    }
 
-.app {
-  max-width:460px;
-  margin:auto;
-  padding:16px;
-}
+    .app {
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 18px 14px 40px;
+    }
 
-h1 { text-align:center; }
+    .header {
+      text-align: center;
+      padding: 12px 0 18px;
+    }
 
-.summary {
-  display:flex;
-  justify-content:space-between;
-  margin:10px 0;
-}
+    .title {
+      font-size: 34px;
+      font-weight: 700;
+      margin: 0;
+    }
 
-.box {
-  flex:1;
-  margin:4px;
-  padding:10px;
-  border-radius:12px;
-  text-align:center;
-  background:#1f274f;
-}
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
 
-.total {
-  background:#14205a;
-  padding:10px;
-  border-radius:12px;
-  margin-bottom:10px;
-}
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 18px 0 18px;
+    }
 
-.filters {
-  display:flex;
-  gap:6px;
-  margin-bottom:10px;
-}
+    .summary-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px 10px;
+      text-align: center;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    }
 
-button {
-  flex:1;
-  padding:8px;
-  border:none;
-  border-radius:10px;
-  background:#1f274f;
-  color:white;
-}
+    .summary-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin: 0 auto 8px;
+    }
 
-button.active {
-  background:#4c6fff;
-}
+    .green { background: #29d17d; }
+    .yellow { background: #f4c542; }
+    .red { background: #ff6b6b; }
 
-.card {
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:10px;
-}
+    .summary-number {
+      font-size: 22px;
+      font-weight: 700;
+    }
 
-.paid { background:#134d3a; }
-.soon { background:#6b4f12; }
-.overdue { background:#6b1f2a; }
-</style>
+    .summary-label {
+      margin-top: 4px;
+      font-size: 12px;
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    }
+
+    .panel-title {
+      font-size: 12px;
+      opacity: 0.78;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: none;
+      background: #ffffff;
+      color: #111;
+      font-size: 14px;
+    }
+
+    .totals {
+      margin: 10px 0 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .total-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    }
+
+    .total-label {
+      font-size: 12px;
+      opacity: 0.75;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .total-value {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      border: none;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      background: #4c6fff;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 20px 4px 12px;
+      opacity: 0.92;
+    }
+
+    .bill-card {
+      border-radius: 22px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .bill-card.paid {
+      background: linear-gradient(180deg, #0f5740 0%, #0b4432 100%);
+    }
+
+    .bill-card.soon {
+      background: linear-gradient(180deg, #7c5c11 0%, #604709 100%);
+    }
+
+    .bill-card.overdue {
+      background: linear-gradient(180deg, #7b2430 0%, #611822 100%);
+    }
+
+    .bill-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .bill-name {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .bill-amount {
+      font-size: 24px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .bill-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+      font-size: 14px;
+      opacity: 0.95;
+    }
+
+    .bill-item span {
+      display: block;
+      font-size: 12px;
+      opacity: 0.72;
+      margin-bottom: 2px;
+    }
+
+    .meta-line {
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: 0.78;
+    }
+
+    .status-pill {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.14);
+    }
+
+    .bill-actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      border: none;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-pay {
+      background: #29d17d;
+      color: #062618;
+    }
+
+    .btn-unpay {
+      background: #ffd7d7;
+      color: #5f0d18;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 28px 16px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      margin-top: 16px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px 12px;
+      opacity: 0.9;
+    }
+
+    .footer-space {
+      height: 20px;
+    }
+  </style>
 </head>
-
 <body>
-<div class="app">
+  <div class="app">
+    <div class="header">
+      <h1 class="title">Facturi Familie</h1>
+      <div class="subtitle">Petrica & Anca · plăți live din telefon</div>
+    </div>
 
-<h1>Facturi Familie</h1>
+    <div class="summary">
+      <div class="summary-card">
+        <div class="summary-dot green"></div>
+        <div class="summary-number" id="paidCount">0</div>
+        <div class="summary-label">Plătite</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-dot yellow"></div>
+        <div class="summary-number" id="soonCount">0</div>
+        <div class="summary-label">Curând</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-dot red"></div>
+        <div class="summary-number" id="overdueCount">0</div>
+        <div class="summary-label">Restante</div>
+      </div>
+    </div>
 
-<div class="summary">
-  <div class="box">Plătite<br><b id="paidCount">0</b></div>
-  <div class="box">Curând<br><b id="soonCount">0</b></div>
-  <div class="box">Restante<br><b id="overdueCount">0</b></div>
-</div>
+    <div class="toolbar">
+      <div class="panel">
+        <div class="panel-title">Utilizator</div>
+        <select id="userSelect">
+          <option value="Petrica">Petrica</option>
+          <option value="Anca">Anca</option>
+        </select>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Filtru</div>
+        <select id="quickFilter" onchange="setFilter(this.value)">
+          <option value="all">Toate</option>
+          <option value="Petrica">Petrica</option>
+          <option value="Anca">Anca</option>
+          <option value="unpaid">Neplătite</option>
+        </select>
+      </div>
+    </div>
 
-<div class="total">
-  💰 Plătit: <b id="totalPaid">0</b><br>
-  ❗ De plată: <b id="totalUnpaid">0</b>
-</div>
+    <div class="totals">
+      <div class="total-box">
+        <div class="total-label">Total plătit</div>
+        <div class="total-value" id="totalPaid">0</div>
+      </div>
+      <div class="total-box">
+        <div class="total-label">Total rămas de plată</div>
+        <div class="total-value" id="totalUnpaid">0</div>
+      </div>
+    </div>
 
-<div class="filters">
-  <button onclick="setFilter('all')" class="active">Toate</button>
-  <button onclick="setFilter('Petrica')">Petrica</button>
-  <button onclick="setFilter('Anca')">Anca</button>
-  <button onclick="setFilter('unpaid')">Neplătite</button>
-</div>
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">Toate</button>
+      <button class="filter-btn" data-filter="Petrica" onclick="setFilter('Petrica')">Petrica</button>
+      <button class="filter-btn" data-filter="Anca" onclick="setFilter('Anca')">Anca</button>
+      <button class="filter-btn" data-filter="unpaid" onclick="setFilter('unpaid')">Neplătite</button>
+    </div>
 
-<div id="content">Se încarcă...</div>
+    <div class="section-title">Facturi</div>
+    <div id="content" class="loading">Se încarcă...</div>
 
-</div>
+    <div class="footer-space"></div>
+  </div>
 
-<script>
-const API_URL = "https://familie-plati-app-ce8l.vercel.app/api/payments";
-let allBills = [];
-let currentFilter = "all";
+  <script>
+    const API_URL = "https://familie-plati-app-ce8l.vercel.app/api/payments";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxj1DAI63rLUoVmNawDnY85rSe90AKKx9-9-TRRJ9m6yBeZ6X1VjfCXf2RrB0Q9tQ57/exec";
 
-function daysUntil(d){
-  if(!d) return null;
-  const date = new Date(d);
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  date.setHours(0,0,0,0);
-  return Math.ceil((date-today)/(1000*60*60*24));
-}
+    let allBills = [];
+    let currentFilter = "all";
 
-function status(b){
-  const diff = daysUntil(b.DataScadenta);
+    function parseDate(dateStr) {
+      if (!dateStr) return null;
+      const d = new Date(dateStr);
+      return isNaN(d) ? null : d;
+    }
 
-  if(b.Platita) return "paid";
-  if(diff < 0) return "overdue";
-  if(diff <=5) return "soon";
-  return "";
-}
+    function formatDate(dateStr) {
+      const d = parseDate(dateStr);
+      if (!d) return "-";
+      return d.toLocaleDateString("ro-RO");
+    }
 
-function render(){
-  let bills = [...allBills];
+    function daysUntil(dateStr) {
+      const d = parseDate(dateStr);
+      if (!d) return null;
 
-  if(currentFilter==="Petrica")
-    bills = bills.filter(b=>b.Persoana==="Petrica");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      d.setHours(0, 0, 0, 0);
 
-  if(currentFilter==="Anca")
-    bills = bills.filter(b=>b.Persoana==="Anca");
+      return Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+    }
 
-  if(currentFilter==="unpaid")
-    bills = bills.filter(b=>!b.Platita);
+    function statusInfo(bill) {
+      const diff = daysUntil(bill.DataScadenta);
 
-  document.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
-  event?.target?.classList.add("active");
+      if (bill.Platita === true) {
+        return { cls: "paid", label: "Plătită" };
+      }
 
-  // totals
-  const paid = allBills.filter(b=>b.Platita);
-  const unpaid = allBills.filter(b=>!b.Platita);
+      if (diff !== null && diff < 0) {
+        return { cls: "overdue", label: "Restantă" };
+      }
 
-  document.getElementById("totalPaid").textContent =
-    paid.reduce((s,b)=>s+b.Suma,0);
+      if (diff !== null && diff <= 5) {
+        return { cls: "soon", label: "Scadență curând" };
+      }
 
-  document.getElementById("totalUnpaid").textContent =
-    unpaid.reduce((s,b)=>s+b.Suma,0);
+      return { cls: "", label: "În așteptare" };
+    }
 
-  document.getElementById("paidCount").textContent = paid.length;
-  document.getElementById("overdueCount").textContent =
-    unpaid.filter(b=>daysUntil(b.DataScadenta)<0).length;
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.getElementById("quickFilter").value = filter;
 
-  document.getElementById("soonCount").textContent =
-    unpaid.filter(b=>{
-      const d=daysUntil(b.DataScadenta);
-      return d>=0 && d<=5;
-    }).length;
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.filter === filter);
+      });
 
-  let html="";
+      renderBills();
+    }
 
-  bills.forEach(b=>{
-    html+=`
-    <div class="card ${status(b)}">
-      <b>${b.TipPlata}</b><br>
-      ${b.Persoana}<br>
-      ${b.Furnizor}<br>
-      ${b.DataScadenta}<br>
-      ${b.Suma}
-    </div>`;
-  });
+    function renderSummary(bills) {
+      const paid = bills.filter(b => b.Platita === true);
+      const unpaid = bills.filter(b => b.Platita !== true);
+      const overdue = unpaid.filter(b => {
+        const d = daysUntil(b.DataScadenta);
+        return d !== null && d < 0;
+      });
+      const soon = unpaid.filter(b => {
+        const d = daysUntil(b.DataScadenta);
+        return d !== null && d >= 0 && d <= 5;
+      });
 
-  document.getElementById("content").innerHTML = html;
-}
+      document.getElementById("paidCount").textContent = paid.length;
+      document.getElementById("soonCount").textContent = soon.length;
+      document.getElementById("overdueCount").textContent = overdue.length;
 
-function setFilter(f){
-  currentFilter = f;
-  render();
-}
+      document.getElementById("totalPaid").textContent =
+        paid.reduce((sum, b) => sum + Number(b.Suma || 0), 0);
 
-fetch(API_URL)
-.then(r=>r.json())
-.then(d=>{
-  allBills = d;
-  render();
-});
-</script>
+      document.getElementById("totalUnpaid").textContent =
+        unpaid.reduce((sum, b) => sum + Number(b.Suma || 0), 0);
+    }
 
+    function filteredBills() {
+      let bills = [...allBills];
+
+      if (currentFilter === "Petrica") {
+        bills = bills.filter(b => b.Persoana === "Petrica");
+      } else if (currentFilter === "Anca") {
+        bills = bills.filter(b => b.Persoana === "Anca");
+      } else if (currentFilter === "unpaid") {
+        bills = bills.filter(b => b.Platita !== true);
+      }
+
+      return bills;
+    }
+
+    function renderBills() {
+      const content = document.getElementById("content");
+      const bills = filteredBills();
+
+      renderSummary(allBills);
+
+      if (!Array.isArray(bills) || bills.length === 0) {
+        content.innerHTML = '<div class="empty">Nu există facturi pentru filtrul selectat.</div>';
+        return;
+      }
+
+      let html = "";
+
+      bills.forEach(bill => {
+        const status = statusInfo(bill);
+
+        html += `
+          <div class="bill-card ${status.cls}">
+            <div class="bill-top">
+              <div class="bill-name">${bill.TipPlata || "-"}</div>
+              <div class="bill-amount">${bill.Suma || 0}</div>
+            </div>
+
+            <div class="bill-grid">
+              <div class="bill-item">
+                <span>Persoană</span>
+                ${bill.Persoana || "-"}
+              </div>
+              <div class="bill-item">
+                <span>Furnizor</span>
+                ${bill.Furnizor || "-"}
+              </div>
+              <div class="bill-item">
+                <span>Scadență</span>
+                ${formatDate(bill.DataScadenta)}
+              </div>
+              <div class="bill-item">
+                <span>Metodă</span>
+                ${bill.Metoda || "-"}
+              </div>
+            </div>
+
+            <div class="status-pill">${status.label}</div>
+
+            <div class="meta-line">
+              Actualizat de: ${bill.ActualizatDe || "-"} · ${bill.ActualizatLa ? bill.ActualizatLa : "-"}
+            </div>
+
+            <div class="bill-actions">
+              ${
+                bill.Platita === true
+                  ? `<button class="action-btn btn-unpay" onclick="togglePaid('${bill.ID}', false)">Anulează plata</button>`
+                  : `<button class="action-btn btn-pay" onclick="togglePaid('${bill.ID}', true)">Marchează plătit</button>`
+              }
+            </div>
+          </div>
+        `;
+      });
+
+      content.innerHTML = html;
+    }
+
+    async function loadBills() {
+      document.getElementById("content").innerHTML = `<div class="loading">Se încarcă...</div>`;
+
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        allBills = await res.json();
+        renderBills();
+      } catch (err) {
+        document.getElementById("content").innerHTML =
+          `<div class="empty">Eroare la încărcare: ${err.message}</div>`;
+      }
+    }
+
+    async function togglePaid(id, platita) {
+      const user = document.getElementById("userSelect").value;
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            id: id,
+            platita: platita,
+            user: user
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.error || "Nu s-a putut salva.");
+        }
+
+        await loadBills();
+      } catch (err) {
+        alert("Eroare: " + err.message);
+      }
+    }
+
+    loadBills();
+  </script>
 </body>
 </html>
